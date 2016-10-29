@@ -7,3 +7,6 @@ Any time a player goes afk, a brief chat message will be displayed and "(afk)" w
 
 `/afk` - Immediately go afk
 
+**Permissions:**
+
+`nerdafk.afk` - Permission to use the `/afk` command
