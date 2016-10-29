@@ -1,0 +1,3 @@
+
+# Wait 10 minutes before declaring someone afk
+afk_delay: 600000

@@ -1,0 +1,18 @@
+name: ${name}
+version: ${version}
+description: ${description}
+website: ${url}
+database: false
+depend: []
+softdepend: []
+author: [Challenger2]
+main: nu.nerd.NerdAFK.AFKPlugin
+
+commands:
+  afk:
+    description: Let everyone know you are now afk
+    permission: nerdafk.afk
+
+permissions:
+  nerdafk.afk:
+    description: Permission to use the /afk command
