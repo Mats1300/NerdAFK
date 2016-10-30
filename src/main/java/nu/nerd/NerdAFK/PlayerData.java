@@ -41,7 +41,8 @@ public class PlayerData {
         float newYaw = _player.getLocation().getYaw();
         
         if ( Math.abs(newPitch - _pitch) < MAX_MOVEMENT &&
-             Math.abs(newYaw - _yaw) < MAX_MOVEMENT) {
+             Math.abs(newYaw - _yaw) < MAX_MOVEMENT &&
+             !_player.hasPermission("nerdafk.noautoafk")) {
 
             if ((System.currentTimeMillis() - _lastMoveTime) > _config.AFK_DELAY) {
                 setAFK();

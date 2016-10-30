@@ -16,3 +16,5 @@ commands:
 permissions:
   nerdafk.afk:
     description: Permission to use the /afk command
+  nerdafk.noautoafk:
+    description: These players will never be made automatically afk
