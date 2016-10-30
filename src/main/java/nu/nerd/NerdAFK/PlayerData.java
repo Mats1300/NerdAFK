@@ -40,9 +40,12 @@ public class PlayerData {
         float newPitch = _player.getLocation().getPitch();
         float newYaw = _player.getLocation().getYaw();
         
+        if (_player.hasPermission("nerdafk.noautoafk")) {
+            _lastMoveTime = System.currentTimeMillis();
+        }
+        
         if ( Math.abs(newPitch - _pitch) < MAX_MOVEMENT &&
-             Math.abs(newYaw - _yaw) < MAX_MOVEMENT &&
-             !_player.hasPermission("nerdafk.noautoafk")) {
+             Math.abs(newYaw - _yaw) < MAX_MOVEMENT) {
 
             if ((System.currentTimeMillis() - _lastMoveTime) > _config.AFK_DELAY) {
                 setAFK();
@@ -67,9 +70,7 @@ public class PlayerData {
         
         String newName = _player.getPlayerListName() + AFK;
         _player.setPlayerListName(newName);
-        
-        _player.getServer().broadcastMessage(
-                String.format("%s%s* %s is afk", ChatColor.ITALIC, ChatColor.GRAY, _player.getName()));
+
     }
     
     /**
@@ -97,6 +98,7 @@ public class PlayerData {
         _player.getServer().getLogger().info("End: " + end);
         */
 
+        /*
         String msg;
         int r = (int)(Math.random()*100.0);
         if (r < 10) {
@@ -106,6 +108,7 @@ public class PlayerData {
         }
         
         _player.getServer().broadcastMessage(msg);
+        */
     }
     
     /**

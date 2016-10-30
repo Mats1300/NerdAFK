@@ -14,6 +14,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import net.md_5.bungee.api.ChatColor;
+
 
 public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
     
@@ -59,6 +61,14 @@ public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
             if (sender instanceof Player) {
                 Player p = (Player)sender;
                 _playerData.get(p.getUniqueId()).setAFK();
+                
+                if (Math.random() < 0.05) {
+                    p.getServer().broadcastMessage(
+                    String.format("%s%s* %s went to afk land", ChatColor.ITALIC, ChatColor.GRAY, p.getName()));           
+                } else {
+                    p.getServer().broadcastMessage(
+                    String.format("%s%s* %s is afk", ChatColor.ITALIC, ChatColor.GRAY, p.getName()));
+                }
             }
             return true;
         } else {
