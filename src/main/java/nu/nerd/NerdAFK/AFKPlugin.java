@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -117,6 +118,15 @@ public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
         } else {
             _playerData.get(e2.getPlayer().getUniqueId()).clearAFK();
         }
+    }
+    
+    /**
+     * Clear afk when a player enters a command
+     * @param e
+     */
+    @EventHandler
+    public void onPlayerCommand(PlayerCommandPreprocessEvent e) {
+        _playerData.get(e.getPlayer().getUniqueId()).clearAFK();
     }
     
     /**
