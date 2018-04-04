@@ -56,27 +56,48 @@ public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        
         // Check Command
         if (command.getName().equalsIgnoreCase("afk")) {
-            if (sender instanceof Player) {
-                Player p = (Player)sender;
-                _playerData.get(p.getUniqueId()).setAFK();
-                
-                if (Math.random() < 0.05) {
-                    p.getServer().broadcastMessage(
-                    String.format("%s%s* %s went to afk land", ChatColor.ITALIC, ChatColor.GRAY, p.getName()));           
-                } else {
-                    p.getServer().broadcastMessage(
-                    String.format("%s%s* %s is afk", ChatColor.ITALIC, ChatColor.GRAY, p.getName()));
-                }
-            }
-            return true;
+            return cmdAFK(sender, args);
         } else {
             return false;
         }
     }
-    
+
+    /**
+     * Perform the /afk [ARGS] action
+     * @param sender Command sender
+     * @param args command arguments
+     * @return Returns true if the command was handled
+     */
+    public boolean cmdAFK(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player p = (Player)sender;
+            _playerData.get(p.getUniqueId()).setAFK();
+
+            StringBuilder builder = new StringBuilder();
+            builder.append(ChatColor.ITALIC);
+            builder.append(ChatColor.GRAY);
+            builder.append("* ");
+            builder.append(p.getName());
+
+            if (Math.random() < 0.05 && args.length == 0) {
+                builder.append(" went to afk land");
+            } else {
+                builder.append(" is afk");
+                for (String arg : args) {
+                    builder.append(" ");
+                    builder.append(arg);
+                }
+            }
+            p.getServer().broadcastMessage(builder.toString());
+        } else {
+            // The sender is the console
+            sender.sendMessage("You are always afk!");
+        }
+        return true;
+    }
+
     /**
      * Handle player join event
      * @param e Event

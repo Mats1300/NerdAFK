@@ -5,7 +5,7 @@ Any time a player goes afk, a brief chat message will be displayed and "(afk)" w
 
 **Commands:**
 
-`/afk` - Immediately go afk
+`/afk [MSG]` - Immediately go afk with an optional message
 
 **Permissions:**
 
