@@ -132,6 +132,7 @@ public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
     /**
      * This is called every 20 ticks to find AFK players
      */
+    @Override
     public void run() {
         for (PlayerData p : _playerData.values()) {
             p.PollMovement();
