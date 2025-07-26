@@ -1,3 +1,5 @@
 
-# Wait 10 minutes before declaring someone afk
-afk_delay: 600000
+# Wait 5 minutes before declaring someone afk
+afk_delay: 300000
+max_movement: 1.0
+afk_suffix: "  [AFK]"
