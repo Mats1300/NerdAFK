@@ -11,4 +11,6 @@ Any time a player goes afk, a brief chat message will be displayed and "(afk)" w
 
 `nerdafk.afk` - Permission to use the `/afk` command
 
-`nerdafk.noautoafk` - Players with this permission are never automatically be made afk
+`nerdafk.noautoafk` - Players with this permission are never automatically made afk.
+
+As of Version 1.1.0 TAB is required as a dependency.
