@@ -53,16 +53,6 @@ public class PlayerData {
     private long lastMoveTime;
 
     /**
-     * Default AFK suffix appended to player names if no config is provided, with gray color
-     */
-    public static final String DEFAULT_AFK_SUFFIX = "<green>[AFK]</green>";
-
-    /**
-     * The Default maximum allowed head movement in degrees to not reset AFK timer.
-     */
-    public static final float DEFAULT_MAX_MOVEMENT = 1.0f;
-
-    /**
      * The actual max movement threshold used, loaded from config or default.
      */
     private final float maxMovement;
@@ -88,8 +78,8 @@ public class PlayerData {
         this.pitch = player.getLocation().getPitch();
         this.yaw = player.getLocation().getYaw();
         this.lastMoveTime = System.currentTimeMillis();
-        this.maxMovement = config.MAX_MOVEMENT != 0 ? config.MAX_MOVEMENT : DEFAULT_MAX_MOVEMENT;
-        this.afkSuffix = config.AFK_SUFFIX != null ? config.AFK_SUFFIX : DEFAULT_AFK_SUFFIX;
+        this.maxMovement = config.MAX_MOVEMENT;
+        this.afkSuffix = config.AFK_SUFFIX;
     }
 
     /**
@@ -170,25 +160,5 @@ public class PlayerData {
             formatManager.setName(tabPlayer, null);
             formatManager.setSuffix(tabPlayer, null);
         }
-    }
-
-    /**
-     * Checks if the player is currently marked as AFK.
-     *
-     * @return true if AFK, false otherwise.
-     */
-    @SuppressWarnings("unused")
-    public boolean isAFK() {
-        return isAfk;
-    }
-
-    /**
-     * Returns the Bukkit player this data refers to.
-     *
-     * @return The Bukkit Player.
-     */
-    @SuppressWarnings("unused")
-    public Player getPlayer() {
-        return player;
     }
 }
