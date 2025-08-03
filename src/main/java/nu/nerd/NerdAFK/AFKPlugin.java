@@ -4,6 +4,9 @@ import java.util.Hashtable;
 import java.util.UUID;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -13,11 +16,8 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+
 
 
 public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
@@ -45,7 +45,7 @@ public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
     public void onDisable() {
         getLogger().info("Stopping...");
         _playerData = null;
-        // The events and scheduled task should stop themselves. (maybe)
+        // The events and scheduled task should stop themselves.
     }
     
     /**
@@ -58,7 +58,6 @@ public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
      */
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
-        // Check Command
         if (command.getName().equalsIgnoreCase("afk")) {
             return cmdAFK(sender, args);
         } else {
@@ -75,24 +74,22 @@ public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
     public boolean cmdAFK(CommandSender sender, String[] args) {
         if (sender instanceof Player p) {
             PlayerData data = _playerData.get(p.getUniqueId());
-
             data.setAFK(); // This sets the AFK state
 
-            Component baseMessage = Component.text("* " + p.getName())
-                    .color(NamedTextColor.GRAY)
-                    .decorate(TextDecoration.ITALIC);
-
-            final Component fullMessage;
+            MiniMessage mm = MiniMessage.miniMessage();
+            String message;
 
             if (Math.random() < 0.05 && args.length == 0) {
-                fullMessage = baseMessage.append(Component.text(" went to afk land"));
+                message = "<gray><i>* " + p.getName() + " went to afk land";
             } else {
-                Component temp = baseMessage.append(Component.text(" is afk"));
+                StringBuilder extra = new StringBuilder();
                 for (String arg : args) {
-                    temp = temp.append(Component.text(" " + arg));
+                    extra.append(" ").append(arg);
                 }
-                fullMessage = temp;
+                message = "<gray><i>* " + p.getName() + " is afk" + extra;
             }
+
+            Component fullMessage = mm.deserialize(message);
 
             // Broadcast using Adventure's audience API
             p.getServer().getOnlinePlayers().forEach(player -> player.sendMessage(fullMessage));
@@ -133,15 +130,11 @@ public class AFKPlugin extends JavaPlugin implements Listener, Runnable {
 
         if (data == null) return;
 
-        // If async, run clearAFK() on the main thread
         if (e.isAsynchronous()) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    PlayerData d = _playerData.get(uuid);
-                    if (d != null) d.clearAFK();
-                }
-            }.runTaskLater(this, 0);
+            Bukkit.getScheduler().runTask(this, () -> {
+                PlayerData d = _playerData.get(uuid);
+                if (d != null) d.clearAFK();
+            });
         } else {
             data.clearAFK();
         }

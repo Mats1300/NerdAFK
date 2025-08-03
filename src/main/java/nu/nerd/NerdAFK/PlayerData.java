@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
  * Determines if the player is AFK based on head movement
  * and updates their tablist name via the TAB plugin accordingly.
  * <p>
- * This class uses the TAB API (v5.2.2) to dynamically modify the player's
+ * This class uses the TAB API (v5.2.5) to dynamically modify the player's
  * tablist name using TabListFormatManager, without relying on placeholders.
  */
 public class PlayerData {
@@ -53,14 +53,9 @@ public class PlayerData {
     private long lastMoveTime;
 
     /**
-     * Minecraft color code for gray text
-     */
-    private static final String COLOR_GRAY = "§7";
-
-    /**
      * Default AFK suffix appended to player names if no config is provided, with gray color
      */
-    public static final String DEFAULT_AFK_SUFFIX = COLOR_GRAY + " (AFK)";
+    public static final String DEFAULT_AFK_SUFFIX = "<green>[AFK]</green>";
 
     /**
      * The Default maximum allowed head movement in degrees to not reset AFK timer.
