@@ -1,130 +1,161 @@
 package nu.nerd.NerdAFK;
 
+import me.neznamy.tab.api.TabAPI;
+import me.neznamy.tab.api.TabPlayer;
+import me.neznamy.tab.api.tablist.TabListFormatManager;
 import org.bukkit.entity.Player;
 
-import net.md_5.bungee.api.ChatColor;
-
+/**
+ * Tracks and manages AFK status for a specific player.
+ * Determines if the player is AFK based on head movement
+ * and updates their tablist name via the TAB plugin accordingly.
+ * <p>
+ * This class uses the TAB API (v5.2.5) to dynamically modify the player's
+ * tablist name using TabListFormatManager, without relying on placeholders.
+ */
 public class PlayerData {
-    
-    public static final float MAX_MOVEMENT = (float)1.0; // 1 degree
-    
-    // Do not put any command chars at the end of the message here.
-    // MC will remove them and the search/replace scheme of removing
-    // this suffix will fail.
-    public static final String AFK = ChatColor.GRAY + "(afk)";
 
-    private Player _player;
-    private Configuration _config;
-    private boolean _isafk;
-    private float _pitch;
-    private float _yaw;
-    private long _lastMoveTime;
-    
+    private final AFKPlugin plugin;
+
     /**
-     * Create new player data
+     * The Bukkit Player instance this data refers to.
      */
-    public PlayerData(Player p, Configuration c) {
-        _player = p;
-        _config = c;
-        _isafk = false;
-        _pitch = p.getLocation().getPitch();
-        _yaw   = p.getLocation().getYaw();
-        _lastMoveTime = System.currentTimeMillis();
+    private final Player player;
+
+    /**
+     * The TabListFormatManager for dynamic tablist modifications.
+     */
+    private final TabListFormatManager formatManager;
+
+    /**
+     * Configuration instance containing AFK detection parameters.
+     */
+    private final Configuration config;
+
+    /**
+     * True if the player is currently marked as AFK.
+     */
+    private boolean isAfk;
+
+    /**
+     * The last recorded pitch value of the player's head direction.
+     */
+    private float pitch;
+
+    /**
+     * The last recorded yaw value of the player's head direction.
+     */
+    private float yaw;
+
+    /**
+     * The system time (in ms) when the player last moved their head.
+     */
+    private long lastMoveTime;
+
+    /**
+     * The actual max movement threshold used, loaded from config or default.
+     */
+    private final float maxMovement;
+
+    /**
+     * The AFK suffix to append to player names when AFK
+     */
+    private final String afkSuffix;
+
+
+    /**
+     * Constructs a new PlayerData instance for tracking AFK status.
+     *
+     * @param player The Bukkit player.
+     * @param config The plugin configuration instance.
+     */
+    public PlayerData(Player player, Configuration config, AFKPlugin plugin) {
+        this.plugin = plugin;
+        this.player = player;
+        this.formatManager = TabAPI.getInstance().getTabListFormatManager();
+        this.config = config;
+        this.isAfk = false;
+        this.pitch = player.getLocation().getPitch();
+        this.yaw = player.getLocation().getYaw();
+        this.lastMoveTime = System.currentTimeMillis();
+        this.maxMovement = config.MAX_MOVEMENT;
+        this.afkSuffix = config.AFK_SUFFIX;
     }
-    
-    /**
-     * Poll for AFK updates. This will set/clear the player AFK
-     * status
-     */
-    public void PollMovement() {
-        float newPitch = _player.getLocation().getPitch();
-        float newYaw = _player.getLocation().getYaw();
-        
-        if (_player.hasPermission("nerdafk.noautoafk")) {
-            _lastMoveTime = System.currentTimeMillis();
-        }
-        
-        if ( Math.abs(newPitch - _pitch) < MAX_MOVEMENT &&
-             Math.abs(newYaw - _yaw) < MAX_MOVEMENT) {
 
-            if ((System.currentTimeMillis() - _lastMoveTime) > _config.AFK_DELAY) {
-                setAFK();
+    /**
+     * Returns the current TAB player for this Bukkit player.
+     *
+     * @return The TabPlayer instance or null if not available.
+     */
+    private TabPlayer getTabPlayer() {
+        return TabAPI.getInstance().getPlayer(player.getUniqueId());
+    }
+
+    /**
+     * Polls the player's head movement and updates AFK status if needed.
+     * Should be called periodically (e.g., every few seconds) by the plugin's scheduler.
+     */
+    public void pollMovement() {
+        // Players with this permission should never go AFK
+        if (player.hasPermission("nerdafk.noautoafk")) {
+            lastMoveTime = System.currentTimeMillis();
+        }
+
+        float newPitch = player.getLocation().getPitch();
+        float newYaw = player.getLocation().getYaw();
+
+        boolean hasMoved = Math.abs(newPitch - pitch) >= maxMovement ||
+                Math.abs(newYaw - yaw) >= maxMovement;
+
+        if (hasMoved) {
+            lastMoveTime = System.currentTimeMillis();
+            if (isAfk) {
+                clearAFK();
             }
         } else {
-            clearAFK();
+            if ((System.currentTimeMillis() - lastMoveTime) > config.AFK_DELAY) {
+                setAFK();
+            }
         }
 
-        _pitch = newPitch;
-        _yaw = newYaw;
+        pitch = newPitch;
+        yaw = newYaw;
     }
-    
+
     /**
-     * Make a player afk
+     * Marks the player as AFK and updates their tablist name via TAB using TabListFormatManager.
      */
     public void setAFK() {
-        if (_isafk) {
+        if (isAfk) return;
+
+        isAfk = true;
+        TabPlayer tabPlayer = getTabPlayer();
+
+        if (tabPlayer == null) {
             return;
         }
 
-        _isafk = true;
-        
-        String newName = _player.getPlayerListName() + AFK;
-        _player.setPlayerListName(newName);
-
+        if (formatManager != null) {
+            formatManager.setName(tabPlayer, player.getName()); // keeps real name
+            formatManager.setSuffix(tabPlayer, afkSuffix);
+        } else {
+            plugin.getLogger().warning("TAB: formatManager is null in setAFK()");
+        }
     }
-    
+
     /**
-     * Clear the AFK status from a player
+     * Clears the player's AFK status and resets their tablist name via TAB to config default.
      */
     public void clearAFK() {
-        _lastMoveTime = System.currentTimeMillis();
-        if(!_isafk) {
-            return;
-        }
-        _isafk = false;
-        
-        String newName = _player.getPlayerListName().replace(AFK, "");
-        _player.setPlayerListName(newName);
-        
-        /*
-        String name = _player.getPlayerListName();
-        _player.getServer().getLogger().info("Name: " + name);
-        int i = name.indexOf(AFK);
-        _player.getServer().getLogger().info("i: " + i);
-        String front = name.substring(0, i);
-        String end = name.substring(i + AFK.length());
-        _player.setPlayerListName(front + end);
-        _player.getServer().getLogger().info("Front: " + front);
-        _player.getServer().getLogger().info("End: " + end);
-        */
+        lastMoveTime = System.currentTimeMillis();
+        if (!isAfk) return;
 
-        /*
-        String msg;
-        int r = (int)(Math.random()*100.0);
-        if (r < 10) {
-            msg = "" + ChatColor.ITALIC + ChatColor.GRAY + "* " + _player.getName() + " is back from the land of afk";
-        } else {
-            msg = "" + ChatColor.ITALIC + ChatColor.GRAY + "* " + _player.getName() + " is back from afk";
+        isAfk = false;
+        TabPlayer tabPlayer = getTabPlayer();
+        if (tabPlayer != null && formatManager != null) {
+            // Reset to config/default values
+            formatManager.setName(tabPlayer, null);
+            formatManager.setSuffix(tabPlayer, null);
         }
-        
-        _player.getServer().broadcastMessage(msg);
-        */
     }
-    
-    /**
-     * See if a player is AFK
-     * @return true for AFK
-     */
-    public boolean isAFK() {
-        return _isafk;
-    }
-    
-    /**
-     * Get the enclosed player
-     * @return
-     */
-    public Player getPlayer() {
-        return _player;
-    }
-    
 }

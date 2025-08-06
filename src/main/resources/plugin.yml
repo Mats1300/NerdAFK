@@ -1,11 +1,13 @@
-name: ${name}
+name: NerdAFK
+api-version: 1.20
 version: ${version}
 description: ${description}
 website: ${url}
 database: false
-depend: []
+depend: [TAB]
 softdepend: []
 author: [Challenger2]
+contributor: [Mats1300]
 main: nu.nerd.NerdAFK.AFKPlugin
 
 commands:
