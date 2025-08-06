@@ -96,28 +96,25 @@ public class PlayerData {
      * Should be called periodically (e.g., every few seconds) by the plugin's scheduler.
      */
     public void pollMovement() {
+        // Players with this permission should never go AFK
+        if (player.hasPermission("nerdafk.noautoafk")) {
+            lastMoveTime = System.currentTimeMillis();
+        }
+
         float newPitch = player.getLocation().getPitch();
         float newYaw = player.getLocation().getYaw();
 
-        // Reset AFK timer for players with bypass permission
-        if (player.hasPermission("nerdafk.noautoafk")) {
+        boolean hasMoved = Math.abs(newPitch - pitch) >= maxMovement ||
+                Math.abs(newYaw - yaw) >= maxMovement;
+
+        if (hasMoved) {
             lastMoveTime = System.currentTimeMillis();
             if (isAfk) {
-                clearAFK(); // If they're marked AFK, clear it
+                clearAFK();
             }
         } else {
-            boolean hasMoved = Math.abs(newPitch - pitch) >= maxMovement ||
-                    Math.abs(newYaw - yaw) >= maxMovement;
-
-            if (hasMoved) {
-                lastMoveTime = System.currentTimeMillis();
-                if (isAfk) {
-                    clearAFK();
-                }
-            } else {
-                if ((System.currentTimeMillis() - lastMoveTime) > config.AFK_DELAY) {
-                    setAFK();
-                }
+            if ((System.currentTimeMillis() - lastMoveTime) > config.AFK_DELAY) {
+                setAFK();
             }
         }
 
